@@ -7,13 +7,20 @@ import platform
 import sys
 
 THRESHOLD = 9  # 9 hours
+stop_flag = False
 
 if platform.system() != 'Darwin':
     print("This script can only be run on macOS.")
     sys.exit(1)
 
 def notify(title, text):
-    subprocess.run(['osascript', '-e', f'display notification "{text}" with title "{title}"'])
+    global stop_flag
+    script = f'''
+    display dialog "{text}" with title "{title}" buttons {{"Stop Notifications", "OK"}} default button "OK"
+    '''
+    result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
+    if "Stop Notifications" in result.stdout:
+        stop_flag = True
 
 def get_uptime_seconds():
     result = subprocess.run(['uptime'], capture_output=True, text=True)
@@ -40,9 +47,10 @@ def get_uptime_seconds():
     return total_seconds
 
 def main():
+    stop_flag = False
     threshold_hours_in_seconds = THRESHOLD * 60 * 60
 
-    while True:
+    while not stop_flag:
         uptime_seconds = get_uptime_seconds()
         if uptime_seconds >= threshold_hours_in_seconds:
             hours = int(uptime_seconds // 3600)
