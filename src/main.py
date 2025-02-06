@@ -21,10 +21,11 @@ def notify(title, text):
     result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
     if "Stop Notifications" in result.stdout:
         stop_flag = True
+        return True
 
 def get_uptime_seconds():
     result = subprocess.run(['uptime'], capture_output=True, text=True)
-    uptime_str = result.stdout
+    uptime_str = result.stdout.strip()
     days, hours, minutes = 0, 0, 0
 
     # Parse the uptime string
@@ -47,17 +48,21 @@ def get_uptime_seconds():
     return total_seconds
 
 def main():
-    stop_flag = False
+    global stop_flag
     threshold_hours_in_seconds = THRESHOLD * 60 * 60
 
     while not stop_flag:
-        uptime_seconds = get_uptime_seconds()
-        if uptime_seconds >= threshold_hours_in_seconds:
-            hours = int(uptime_seconds // 3600)
-            minutes = int((uptime_seconds % 3600) // 60)
-            notify("Working hours", f"{hours} hours and {minutes} minutes have passed since the computer started.")
+        try:
+            uptime_seconds = get_uptime_seconds()
+            if uptime_seconds >= threshold_hours_in_seconds:
+                hours = int(uptime_seconds // 3600)
+                minutes = int((uptime_seconds % 3600) // 60)
+                notify("Working hours", f"{hours} hours and {minutes} minutes have passed since the computer started.")
+                break
+            time.sleep(60)  # Check every minute
+        except Exception as e:
+            print(f"An error occurred: {e}")
             break
-        time.sleep(60)  # Check every minute
 
 if __name__ == "__main__":
     main()
