@@ -21,7 +21,7 @@ def notify(title, text):
     result = subprocess.run(['osascript', '-e', script], capture_output=True, text=True)
     if "Stop Notifications" in result.stdout:
         stop_flag = True
-        return True
+        sys.exit(0)
 
 def get_uptime_seconds():
     result = subprocess.run(['uptime'], capture_output=True, text=True)
@@ -58,8 +58,9 @@ def main():
                 hours = int(uptime_seconds // 3600)
                 minutes = int((uptime_seconds % 3600) // 60)
                 notify("Working hours", f"{hours} hours and {minutes} minutes have passed since the computer started.")
-                break
-            time.sleep(60)  # Check every minute
+                time.sleep(3600)
+            else:
+                time.sleep(60)
         except Exception as e:
             print(f"An error occurred: {e}")
             break
